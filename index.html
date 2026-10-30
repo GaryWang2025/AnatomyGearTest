@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101311">
+  <title>双齿轮啮合传动 · Anatomy 验证</title>
+  <style>
+    :root { color-scheme: dark; --paper:#101311; --panel:#151a17; --line:#78847b; --muted:#9da8a0; --mid:#39433d; --hi:#cdd6ce; --lit:#d9ff91; --edge:#252d27; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:radial-gradient(circle at 50% -15%,#253229 0,#101311 52%); color:var(--hi); font:15px/1.4 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+    main { width:min(760px,100%); margin:auto; padding:clamp(14px,4vw,28px) clamp(12px,4vw,30px) 34px; }
+    .card { position:relative; overflow:hidden; border:1px solid #5d685f; background:linear-gradient(145deg,#171d19,#0d100e); box-shadow:0 20px 65px #0008; }
+    .meta { display:flex; justify-content:space-between; gap:12px; padding:15px 17px 0; color:var(--muted); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+    .stage { position:relative; aspect-ratio: 7 / 5; min-height:270px; }
+    svg { display:block; width:100%; height:100%; overflow:visible; }
+    .base { fill:#242d27; stroke:#9aa69d; stroke-width:1.2; }
+    .top { fill:#46534a; stroke:#b7c1b9; stroke-width:1.2; }
+    .side { fill:#222a24; stroke:#7b867e; stroke-width:1.1; }
+    .line { fill:none; stroke:#b7c1b9; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
+    .fine { fill:none; stroke:#6d786f; stroke-width:.8; stroke-linecap:round; }
+    .bolt { fill:#0d100e; stroke:#b7c1b9; stroke-width:1; }
+    .gear { fill:#303b34; stroke:#dce6de; stroke-width:1.25; stroke-linejoin:round; }
+    .gear.secondary { fill:#273129; }
+    .tooth-line { fill:none; stroke:#67736a; stroke-width:.75; }
+    .hub { fill:#121713; stroke:#dce6de; stroke-width:1.2; }
+    .key { fill:var(--lit); }
+    .active .gear { stroke:var(--lit); filter:drop-shadow(0 0 6px #d9ff9155); }
+    .readout { display:flex; justify-content:space-between; gap:8px; padding:0 17px 15px; color:var(--muted); font-size:12px; letter-spacing:.04em; }
+    .readout b { min-width:0; color:var(--lit); font-weight:600; text-align:right; overflow-wrap:anywhere; }
+    .controls { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:14px; }
+    button { min-height:48px; border:1px solid #6e7b71; border-radius:4px; background:#1d241f; color:var(--hi); font:inherit; letter-spacing:.05em; cursor:pointer; }
+    button:hover, button:focus-visible { border-color:var(--lit); color:var(--lit); outline:none; }
+    button.primary { background:#d9ff91; border-color:#d9ff91; color:#172012; font-weight:800; }
+    button:disabled { opacity:.42; cursor:default; }
+    .speed { grid-column:1 / -1; border:1px solid #39443d; padding:12px 13px 10px; background:#121713; }
+    .speed-label { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; }
+    output { color:var(--lit); font-weight:700; }
+    input { width:100%; accent-color:var(--lit); margin:13px 0 3px; min-height:28px; }
+    .caption { margin:13px 3px 0; color:#9da8a0; font-size:12px; }
+    @media (max-width:420px) { .meta { padding:12px 12px 0; font-size:10px; } .readout { padding:0 12px 12px; font-size:10px; } .stage { min-height:245px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" aria-label="双齿轮啮合传动交互模型">
+      <div class="meta"><span>Fig 01</span><span>双齿轮传动</span></div>
+      <div class="stage" id="stage" tabindex="0" role="group" aria-label="两个啮合齿轮；使用启动、暂停和速度滑块控制" aria-describedby="gear-readout">
+        <svg viewBox="0 0 700 500" role="img" aria-label="装在底座上的十二齿主动齿轮和十八齿从动齿轮">
+          <defs><filter id="halo"><feGaussianBlur stdDeviation="12"/></filter></defs>
+          <ellipse cx="350" cy="375" rx="272" ry="42" fill="#000" opacity=".45" filter="url(#halo)"/>
+          <path class="base" d="M85 330 350 265 615 330 350 415Z"/>
+          <path class="top" d="M85 306 350 240 615 306 350 390Z"/>
+          <path class="side" d="M85 306v24l265 85v-25Zm530 0v24l-265 85v-25Z"/>
+          <path class="fine" d="M126 310 350 254 574 310M350 390V270"/>
+          <g id="base-bolts"></g>
+          <g aria-hidden="true">
+            <path class="side" d="M222 294v-38h92v38Z"/><ellipse class="top" cx="268" cy="256" rx="46" ry="14"/>
+            <path class="side" d="M376 294v-48h112v48Z"/><ellipse class="top" cx="432" cy="246" rx="56" ry="17"/>
+            <path class="fine" d="M233 267h70m-70 10h70M389 258h86m-86 11h86"/>
+          </g>
+          <g id="gear-set">
+            <g id="gear-a" transform="translate(268 223)"><path class="gear" id="gear-a-shape"/><g class="tooth-line" id="gear-a-lines"></g><circle class="hub" r="24"/><circle class="bolt" r="8"/><path class="key" d="M-4-18h8v18h-8z"/></g>
+            <g id="gear-b" transform="translate(432 223)"><path class="gear secondary" id="gear-b-shape"/><g class="tooth-line" id="gear-b-lines"></g><circle class="hub" r="31"/><circle class="bolt" r="10"/><path class="key" d="M-5-24h10v24h-10z"/></g>
+          </g>
+          <g aria-hidden="true"><path class="line" d="M103 349h93m308 0h93"/><path class="fine" d="M118 356h63m338 0h63"/><circle class="bolt" cx="112" cy="349" r="4"/><circle class="bolt" cx="588" cy="349" r="4"/></g>
+        </svg>
+      </div>
+      <div class="readout" id="gear-readout" data-readout><span>待机 · 啮合比 12:18</span><b>主动 0.0 RPM · 停止｜从动 0.0 RPM · 停止</b></div>
+    </section>
+    <section class="controls" aria-label="传动控制">
+      <button class="primary" id="start" type="button">启动传动</button>
+      <button id="pause" type="button" disabled>暂停</button>
+      <label class="speed"><span class="speed-label"><span>输入轴速度</span><output id="speed-value" for="speed">30 RPM</output></span><input id="speed" type="range" min="6" max="90" value="30" step="1" aria-label="输入轴速度，单位每分钟转数"></label>
+    </section>
+    <p class="caption">主动齿轮为 12 齿；从动齿轮为 18 齿。因此从动轮反向，转速恒为输入转速的 12/18。</p>
+  </main>
+  <script>
+    (() => {
+      const NS = 'http://www.w3.org/2000/svg';
+      const $ = id => document.getElementById(id);
+      const A = { teeth:12, root:58, tip:70, phase:0, node:$('gear-a'), path:$('gear-a-shape'), lines:$('gear-a-lines') };
+      const B = { teeth:18, root:82, tip:94, phase:Math.PI / 18, node:$('gear-b'), path:$('gear-b-shape'), lines:$('gear-b-lines') };
+      const state = { running:false, rpm:30, angle:0, visible:true, frame:0, last:0 };
+      const ratio = A.teeth / B.teeth;
+      const readout = $('gear-readout'), stage = $('stage'), start = $('start'), pause = $('pause'), speed = $('speed'), speedValue = $('speed-value'), gearSet = $('gear-set');
+      function gearPath(g) { let d=''; const n=g.teeth*4; for(let i=0;i<n;i++){ const a=g.phase+i*Math.PI*2/n; const r=(i%4===0||i%4===1)?g.tip:g.root; d += `${i?'L':'M'}${(Math.cos(a)*r).toFixed(2)},${(Math.sin(a)*r).toFixed(2)}`; } return d+'Z'; }
+      function addDetails(g) { g.path.setAttribute('d',gearPath(g)); for(let i=0;i<g.teeth;i++){ const a=g.phase+(i+.5)*Math.PI*2/g.teeth; const l=document.createElementNS(NS,'line'); l.setAttribute('x1',(Math.cos(a)*(g.root+5)).toFixed(2)); l.setAttribute('y1',(Math.sin(a)*(g.root+5)).toFixed(2)); l.setAttribute('x2',(Math.cos(a)*(g.tip-4)).toFixed(2)); l.setAttribute('y2',(Math.sin(a)*(g.tip-4)).toFixed(2)); g.lines.append(l); } }
+      function bolts(){ const g=$('base-bolts'); [[126,320],[188,337],[512,337],[574,320],[350,278],[350,374]].forEach(([x,y])=>{const c=document.createElementNS(NS,'circle');c.setAttribute('class','bolt');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','4');g.append(c);}); }
+      function signed(n){ return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)}`; }
+      function draw(){ const bRpm = state.running ? -state.rpm*ratio : 0, aRpm=state.running?state.rpm:0; A.node.setAttribute('transform',`translate(268 223) rotate(${state.angle.toFixed(3)})`); B.node.setAttribute('transform',`translate(432 223) rotate(${(-state.angle*ratio).toFixed(3)})`); gearSet.classList.toggle('active',state.running); readout.innerHTML = `<span>${state.running?'传动中 · 啮合比 12:18':'待机 · 啮合比 12:18'}</span><b>主动 ${signed(aRpm)} RPM · ${aRpm?'顺时针':'停止'}｜从动 ${signed(bRpm)} RPM · ${bRpm?'逆时针':'停止'}</b>`; stage.setAttribute('aria-valuetext', state.running ? `传动中。主动齿轮顺时针 ${aRpm.toFixed(1)} 转每分钟；从动齿轮逆时针 ${Math.abs(bRpm).toFixed(1)} 转每分钟。` : '传动暂停。两个齿轮停止。'); }
+      function tick(now){ const dt=state.last?Math.min((now-state.last)/1000,1/30):0; state.last=now; if(state.running) state.angle += state.rpm*6*dt; draw(); if(state.running&&state.visible) state.frame=requestAnimationFrame(tick); else state.frame=0; }
+      function run(){ if(!state.frame&&state.running&&state.visible) { state.last=0; state.frame=requestAnimationFrame(tick); } }
+      function setRunning(on){ state.running=on; start.disabled=on; pause.disabled=!on; draw(); run(); }
+      addDetails(A); addDetails(B); bolts(); draw();
+      start.addEventListener('click',()=>setRunning(true)); pause.addEventListener('click',()=>setRunning(false));
+      speed.addEventListener('input',()=>{ state.rpm=Number(speed.value); speedValue.textContent=`${state.rpm} RPM`; draw(); });
+      stage.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){e.preventDefault();setRunning(!state.running);} if(e.key==='ArrowRight'||e.key==='ArrowUp'){speed.value=Math.min(90,Number(speed.value)+1);speed.dispatchEvent(new Event('input'));} if(e.key==='ArrowLeft'||e.key==='ArrowDown'){speed.value=Math.max(6,Number(speed.value)-1);speed.dispatchEvent(new Event('input'));} });
+      new IntersectionObserver(entries=>{ state.visible=entries[entries.length-1].isIntersecting; if(state.visible)run(); },{rootMargin:'120px 0px'}).observe(stage);
+      window.__gearTest = { start:()=>setRunning(true), pause:()=>setRunning(false), setSpeed:n=>{speed.value=n;speed.dispatchEvent(new Event('input'));}, state:()=>({running:state.running,rpm:state.rpm,drivenRpm:-(state.rpm*ratio)}) };
+    })();
+  </script>
+</body>
+</html>
